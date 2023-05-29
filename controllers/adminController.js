@@ -21,13 +21,17 @@ export const createUser = async (req, res, next) => {
       phone,
       role,
       image,
+      password
     } = req.body;
     let user = await User.findOne({ email: email });
 
     if (user) return next(new Errorhandler("User already exists", 400));
 
-
-
+let hashedpassword;
+if(password){
+hashedpassword = await bcrypt.hash(password, 10);
+  
+}
     const result = await User.create({
       name: name,
       image: image,
@@ -36,7 +40,7 @@ export const createUser = async (req, res, next) => {
       dateOfBirth: dateOfBirth,
       gender: gender,
       phone: phone,
-
+ password: password? hashedpassword:""
     });
 
     if (result) {
@@ -101,4 +105,32 @@ const result= await Auth.findOneAndUpdate(
     result,
   });
 
+}
+
+export const adminLogin= async(req,res,next)=>{
+  const { email, password } = req.body;
+
+    if (!email || !password) {
+      return next(new Errorhandler("Enter both email and pass"), 400);
+    }
+    const user = await User.findOne({ email: email }).select("+password");
+    if (!user) return next(new Errorhandler("User dosent exist", 400));
+
+    const payload = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+    };
+    const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, {
+      expiresIn: process.env.JWT_KEY_EXPIRE,
+    });
+  
+    const options = {
+      expire: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      httpOnly: true,
+    };
+    res.status(200).cookie("token", token, options).json({
+      success: true,
+      user,
+    });
 }
