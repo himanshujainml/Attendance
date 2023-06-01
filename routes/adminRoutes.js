@@ -8,9 +8,9 @@ const router = express.Router();
 
 router.route("/getAllUser").get(getAllUser);
 router.route("/adminLogin").post(adminLogin);
-router.route("/createUser").post( createUser);
+router.route("/createUser").post(isAuthenticatedUser, hasAccess, createUser);
 router.route("/getAuthToken").get(getAuthToken)
-router.route("/regenrateToken").post(regenrateToken)
+router.route("/regenrateToken").post(isAuthenticatedUser, hasAccess, regenrateToken)
 
 
 

@@ -2,6 +2,7 @@ import Auth from "../models/auth.js";
 import Errorhandler from "../utils/ErrorHandler.js";
 import User from "../models/user.js";
 import Attendance from "../models/attendance.js";
+import jwt from "jsonwebtoken"
 // import Attendance from "../models/attendance.js;"
 
 export const employeeLogin = async (req, res, next) => {
