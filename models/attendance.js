@@ -1,19 +1,19 @@
 import mongoose from "mongoose";
 
 const attendanceSchema = new mongoose.Schema({
-    userId: { type: String,  },
-    day: {type: String, },
-    month: {type: String, },
-    year: {type: String, },
-    startTime: {type: String, },
-    userLocation:{
-        longitute:{type:String},
-        latitute:{type:String},
-        country:{type:String}
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    day: { type: String, },
+    month: { type: String, },
+    year: { type: String, },
+    startTime: { type: String, },
+    userLocation: {
+        longitute: { type: String },
+        latitute: { type: String },
+        country: { type: String }
     },
-    endTime: {type: String, },
-    totalHour:{type: String, },
-    status: {type: String, },
+    endTime: { type: String, },
+    totalHour: { type: String, },
+    status: { type: String, },
     createdAt: { type: Date, default: Date.now() },
     updatedAt: { type: Date, default: Date.now() }
 })

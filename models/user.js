@@ -49,6 +49,7 @@ const userSchema = new mongoose.Schema({
     codeCreateTime: {type: String, default: ""},
     isLogin: {type: Boolean, default: false},
     verified: {type: Boolean, default: false},
+    isDeleted:{type:Boolean, deafult:false},
     createdAt: { type: Date, default: Date.now() },
     updatedAt: { type: Date, default: Date.now() }
 

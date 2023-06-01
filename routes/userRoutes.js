@@ -1,6 +1,6 @@
 import express from "express";
-import { employeeLogin } from "../controllers/adminController.js";
-import { endDay, getAllUserMonthlyAttendance, getAllUserTodayAttendance, getAttendanceOfParticluarUser, getParticularUserDeatils, loginUser, startDay } from "../controllers/userContorller.js";
+
+import { employeeLogin, endDay, getAllUserMonthlyAttendance, getAllUserTodayAttendance, getAttendanceOfParticluarUser, getParticularUserDeatils, startDay } from "../controllers/userContorller.js";
 
 const router = express.Router();
 

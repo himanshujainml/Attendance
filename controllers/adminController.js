@@ -5,13 +5,26 @@ import Errorhandler from "../utils/ErrorHandler.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 export const getAllUser = async (req, res, next) => {
-  const result = await User.find();
+  const result = await User.find({ isDeleted: false });
   res.status(200).json({
     success: true,
     message: "All users",
     result,
   });
 };
+
+function generateRandomCode() {
+  var code = '';
+  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  var charactersLength = characters.length;
+
+  for (var i = 0; i < 6; i++) {
+    var randomIndex = Math.floor(Math.random() * charactersLength);
+    code += characters.charAt(randomIndex);
+  }
+
+  return code;
+} 
 
 export const createUser = async (req, res, next) => {
   try {
@@ -29,7 +42,7 @@ export const createUser = async (req, res, next) => {
       image,
       password
     } = req.body.personalInfo;
-    let user = await User.findOne({ email: email });
+    let user = await User.findOne({ email: email, isDeleted: false });
 
     if (user) return next(new Errorhandler("User already exists", 400));
 
@@ -43,7 +56,10 @@ export const createUser = async (req, res, next) => {
       verified = true;
     }
     if (role === "EMPLOYEE") {
-      code = uuidv4();
+  
+     
+code= generateRandomCode();
+  
       codeCreateTime = Date.now();
     }
     console.log(code, codeCreateTime, "time");
@@ -99,11 +115,14 @@ export const regenrateToken = async (req, res, next) => {
   console.log(userId)
   if (!userId) return next(new Errorhandler("please specify the user", 400));
 
-  const code = uuidv4();
+  const code = generateRandomCode();
   const codeCreateTime = Date.now();
 
   const result = await User.findOneAndUpdate(
-    { _id: userId },
+    {
+      _id: userId,
+      isDeleted: false
+    },
     {
       verified: false,
       codeCreateTime: codeCreateTime,
@@ -131,7 +150,7 @@ export const adminLogin = async (req, res, next) => {
   if (!email || !password) {
     return next(new Errorhandler("Enter both email and pass"), 400);
   }
-  const user = await User.findOne({ email: email }).select("+password");
+  const user = await User.findOne({ email: email, isDeleted: false }).select("+password");
   if (!user) return next(new Errorhandler("User dosent exist", 400));
 
   const payload = {
@@ -154,36 +173,91 @@ export const adminLogin = async (req, res, next) => {
   });
 }
 
-export const employeeLogin = async (req, res, next) => {
-  const { code, loginTime } = req.body;
+// export const employeeLogin = async (req, res, next) => {
+//   const { code, loginTime } = req.body;
 
-  if (!code && !loginTime) return next(new Errorhandler("Error with the code", 400));
+//   if (!code && !loginTime) return next(new Errorhandler("Error with the code", 400));
 
-  const user = await User.findOne({ code: code, isCodeUsed: false });
+//   const user = await User.findOne({ code: code, isCodeUsed: false, isDeleted:false });
 
-  if (!user) return next(new Errorhandler("No employee found here", 400));
+//   if (!user) return next(new Errorhandler("No employee found here", 400));
 
 
-  if (Number(loginTime) - Number(user.codeCreateTime) > 60000) return next(new Errorhandler("Cannot login", 400));
+//   if (Number(loginTime) - Number(user.codeCreateTime) > 60000) return next(new Errorhandler("Cannot login", 400));
 
-  const payload = {
-    id: user._id,
-    firstName: user.personalInfo.firstName,
-    lastName: user.personalInfo.lastName,
-    email: user.email,
-    code: user.code,
-  };
-  const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, {
-    expiresIn: process.env.JWT_KEY_EXPIRE,
-  });
+//   const payload = {
+//     id: user._id,
+//     firstName: user.personalInfo.firstName,
+//     lastName: user.personalInfo.lastName,
+//     email: user.email,
+//     code: user.code,
+//   };
+//   const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, {
+//     expiresIn: process.env.JWT_KEY_EXPIRE,
+//   });
 
-  const result = await User.findOneAndUpdate({ _id: user._id }, { isLogin: true, isCodeUsed: true, verified: true }, { new: true });
+//   const result = await User.findOneAndUpdate({ _id: user._id, isDeleted:false }, { isLogin: true, isCodeUsed: true, verified: true }, { new: true });
+
+//   res.status(200).json({
+//     success: true,
+//     token,
+//     result
+//   })
+
+
+// }
+
+export const deleteUser = async (req, res, next) => {
+
+  const { userId } = req.body;
+
+  if (!userId) return next(new Errorhandler('Send Id please', 400))
+  const result = await User.findOneAndUpdate(
+    {
+      userId: userId,
+      isDeleted: false
+    },
+    { isDeleted: true },
+    { new: true }
+  )
+
+  if (!result) return next(new Errorhandler("User not found", 400));
 
   res.status(200).json({
     success: true,
-    token,
     result
   })
 
+}
 
+//edit user---
+
+export const editUser = async (req, res, next) => {
+  const { findQuery, updateQuery } = req.body;
+
+  if (!findQuery || !updateQuery) return next(new Errorhandler("fields not specified", 400));
+
+  const result = await User.findOneAndUpdate(findQuery, updateQuery, { new: true });
+
+  if (!result) return next(new Errorhandler("Not found", 400))
+
+  res.status(200).json({
+    success: true,
+    result
+  })
+}
+
+export const editAttendence = async(req, res, next)=>{
+  const {findQuery, updateQuery} = req.body;
+
+  if(!findQuery || !updateQuery) return next(new Errorhandler("send fields", 400));
+
+  const result = await User.findOneAndUpdate(findQuery, updateQuery, {new: true});
+
+  if(!result) return next(new Errorhandler("Not found", 400));
+
+  res.status(200).json({
+    success: true,
+    result
+  })
 }
