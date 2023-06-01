@@ -126,6 +126,8 @@ export const endDay = async (req, res, next) => {
 
 }
 
+
+
 export const getAllUserMonthlyAttendance = async (req, res, next) => {
   const { month, year } = req.query
   const result = await Attendance.aggregate([
@@ -246,3 +248,4 @@ export const getAttendanceOfParticluarUser = async (req, res, next) => {
     result,
   });
 } 
+
