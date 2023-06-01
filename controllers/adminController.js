@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 
+import uploadImageFromBase64 from "../utils/cloudinary.js";
 export const getAllUser = async (req, res, next) => {
   const result = await User.find({ isDeleted: false });
   res.status(200).json({
@@ -85,7 +86,7 @@ export const createUser = async (req, res, next) => {
         address: address,
       },
       password: hashedpassword,
-      email: email,
+      email:  email,
       code: code,
       codeCreateTime: codeCreateTime,
       verified: verified
@@ -293,5 +294,19 @@ export const editAttendence = async (req, res, next) => {
     })
   } catch (error) {
     next(error);
+  }
+}
+
+export const cloudinaryTesting = async (req, res, next) => {
+
+  try {
+
+    const result =await uploadImageFromBase64(req.body.image);
+    console.log(result.url)
+    res.json({
+      hello: "helllo"
+    })
+  } catch (error) {
+    console.log(error, "erorr")
   }
 }

@@ -1,5 +1,5 @@
 import express from "express";
-import { adminLogin, createUser, getAllUser, getAuthToken, regenrateToken } from "../controllers/adminController.js";
+import { adminLogin, cloudinaryTesting, createUser, getAllUser, getAuthToken, regenrateToken } from "../controllers/adminController.js";
 import { hasAccess } from "../middleware/access.js";
 import { isAuthenticatedUser } from "../middleware/auth.js";
 
@@ -11,7 +11,8 @@ router.route("/adminLogin").post(adminLogin);
 router.route("/createUser").post(isAuthenticatedUser, hasAccess, createUser);
 router.route("/getAuthToken").get(getAuthToken)
 router.route("/regenrateToken").post(isAuthenticatedUser, hasAccess, regenrateToken)
-
+//for testing
+router.route("/saveImage").post(cloudinaryTesting)
 
 
 
