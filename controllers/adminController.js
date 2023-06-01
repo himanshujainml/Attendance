@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import Errorhandler from "../utils/ErrorHandler.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import uploadImageFromBase64 from "../utils/cloudinary.js";
 export const getAllUser = async (req, res, next) => {
   const result = await User.find({ isDeleted: false });
   res.status(200).json({
@@ -42,7 +43,7 @@ export const createUser = async (req, res, next) => {
     } = req.body.personalInfo;
     const { password, email } = req.body;
 
-    if (!firstName || !lastName || !email || !aadhar || !pan || !state || !city || !address || !phone || !role ) {
+    if (!firstName || !lastName || !email || !aadhar || !pan || !state || !city || !address || !phone || !role) {
       return next(new Errorhandler("Empty fileds", 400));
     }
     let user = await User.findOne({ email: email, isDeleted: false });
@@ -84,7 +85,7 @@ export const createUser = async (req, res, next) => {
         address: address,
       },
       password: hashedpassword,
-      email:email,
+      email: email,
       code: code,
       codeCreateTime: codeCreateTime,
       verified: verified
@@ -164,7 +165,7 @@ export const adminLogin = async (req, res, next) => {
   if (!comparePassword)
     return next(new Errorhandler("Wrong email or password", 400));
 
-    console.log(user, "user");
+  console.log(user, "user");
   const payload = {
     id: user._id,
     name: user.name,
@@ -250,6 +251,8 @@ export const editUser = async (req, res, next) => {
 
   if (!findQuery || !updateQuery) return next(new Errorhandler("fields not specified", 400));
 
+
+  
   const result = await User.findOneAndUpdate(findQuery, updateQuery, { new: true });
 
   if (!result) return next(new Errorhandler("Not found", 400))
@@ -265,6 +268,9 @@ export const editAttendence = async (req, res, next) => {
 
   if (!findQuery || !updateQuery) return next(new Errorhandler("send fields", 400));
 
+
+  
+
   const result = await User.findOneAndUpdate(findQuery, updateQuery, { new: true });
 
   if (!result) return next(new Errorhandler("Not found", 400));
@@ -273,4 +279,18 @@ export const editAttendence = async (req, res, next) => {
     success: true,
     result
   })
+}
+
+export const cloudinaryTesting = async (req, res, next) => {
+
+  try {
+
+    const result =await uploadImageFromBase64(req.body.image);
+    console.log(result.url)
+    res.json({
+      hello: "helllo"
+    })
+  } catch (error) {
+    console.log(error, "erorr")
+  }
 }
