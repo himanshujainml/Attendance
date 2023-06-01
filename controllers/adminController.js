@@ -24,14 +24,13 @@ function generateRandomCode() {
   }
 
   return code;
-} 
+}
 
 export const createUser = async (req, res, next) => {
   try {
     const {
       firstName,
       lastName,
-      email,
       aadhar,
       pan,
       state,
@@ -39,9 +38,13 @@ export const createUser = async (req, res, next) => {
       address,
       phone,
       role,
-      image,
-      password
+      image
     } = req.body.personalInfo;
+    const { password, email } = req.body;
+
+    if (!firstName || !lastName || !email || !aadhar || !pan || !state || !city || !address || !phone || !role ) {
+      return next(new Errorhandler("Empty fileds", 400));
+    }
     let user = await User.findOne({ email: email, isDeleted: false });
 
     if (user) return next(new Errorhandler("User already exists", 400));
@@ -52,14 +55,15 @@ export const createUser = async (req, res, next) => {
     let verified = false;
 
     if (role === "HR") {
+      if (!password || !email) return (next(new Errorhandler("enter password", 400)))
       hashedpassword = await bcrypt.hash(password, 10);
       verified = true;
     }
     if (role === "EMPLOYEE") {
-  
-     
-code= generateRandomCode();
-  
+
+
+      code = generateRandomCode();
+
       codeCreateTime = Date.now();
     }
     console.log(code, codeCreateTime, "time");
@@ -72,7 +76,6 @@ code= generateRandomCode();
         lastName: lastName,
         image: image,
         role: role,
-        email: email,
         phone: phone,
         aadhar: aadhar,
         pan: pan,
@@ -81,6 +84,7 @@ code= generateRandomCode();
         address: address,
       },
       password: hashedpassword,
+      email:email,
       code: code,
       codeCreateTime: codeCreateTime,
       verified: verified
@@ -146,17 +150,26 @@ export const regenrateToken = async (req, res, next) => {
 
 export const adminLogin = async (req, res, next) => {
   const { email, password } = req.body;
+  console.log(email, password)
 
   if (!email || !password) {
     return next(new Errorhandler("Enter both email and pass"), 400);
   }
   const user = await User.findOne({ email: email, isDeleted: false }).select("+password");
+
   if (!user) return next(new Errorhandler("User dosent exist", 400));
 
+  let comparePassword = await bcrypt.compare(password, user.password);
+
+  if (!comparePassword)
+    return next(new Errorhandler("Wrong email or password", 400));
+
+    console.log(user, "user");
   const payload = {
     id: user._id,
     name: user.name,
     email: user.email,
+    role: user.role
   };
   const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, {
     expiresIn: process.env.JWT_KEY_EXPIRE,
@@ -247,14 +260,14 @@ export const editUser = async (req, res, next) => {
   })
 }
 
-export const editAttendence = async(req, res, next)=>{
-  const {findQuery, updateQuery} = req.body;
+export const editAttendence = async (req, res, next) => {
+  const { findQuery, updateQuery } = req.body;
 
-  if(!findQuery || !updateQuery) return next(new Errorhandler("send fields", 400));
+  if (!findQuery || !updateQuery) return next(new Errorhandler("send fields", 400));
 
-  const result = await User.findOneAndUpdate(findQuery, updateQuery, {new: true});
+  const result = await User.findOneAndUpdate(findQuery, updateQuery, { new: true });
 
-  if(!result) return next(new Errorhandler("Not found", 400));
+  if (!result) return next(new Errorhandler("Not found", 400));
 
   res.status(200).json({
     success: true,

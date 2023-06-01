@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
         state: {type: String},
         city: {type: String},
         address:{type: String},
-        email: { type: String, required: true },
+        // email: { type: String, required: true },
     },
     experienceInfo: {
         yearsOfExperience: {type: Number, default: ""},
@@ -44,12 +44,13 @@ const userSchema = new mongoose.Schema({
         experienceLetter: {type: String, default: ""}
     },
     password:{type:String, select: false},
+    email: { type: String, required: true },
     code: {type: String, default: ""},
     isCodeUsed: {type: Boolean, default: false},
     codeCreateTime: {type: String, default: ""},
     isLogin: {type: Boolean, default: false},
     verified: {type: Boolean, default: false},
-    isDeleted:{type:Boolean, deafult:false},
+    isDeleted: {type: Boolean, default: false},
     createdAt: { type: Date, default: Date.now() },
     updatedAt: { type: Date, default: Date.now() }
 
