@@ -1,5 +1,5 @@
 import Auth from "../models/auth.js";
-import Errorhandler from "../utils/ErrorHandler.js";
+import Errorhandler from "../utils/Errorhandler.js";
 import User from "../models/user.js";
 import Attendance from "../models/attendance.js";
 import jwt from "jsonwebtoken"
@@ -249,5 +249,5 @@ export const getAttendanceOfParticluarUser = async (req, res, next) => {
     message: "Daily attendance of all user",
     result,
   });
-} 
+}
 

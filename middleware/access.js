@@ -1,4 +1,4 @@
-import Errorhandler from "../utils/errorHandler.js";
+import Errorhandler from "../utils/Errorhandler.js";
 
 
 
