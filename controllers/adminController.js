@@ -1,9 +1,8 @@
 import Auth from "../models/auth.js";
-import User from "../models/user.js"
+import User from "../models/user.js";
 import Errorhandler from "../utils/Errorhandler.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-
 
 import uploadImageFromBase64 from "../utils/cloudinary.js";
 export const getAllUser = async (req, res, next) => {
@@ -16,8 +15,9 @@ export const getAllUser = async (req, res, next) => {
 };
 
 function generateRandomCode() {
-  var code = '';
-  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  var code = "";
+  var characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   var charactersLength = characters.length;
 
   for (var i = 0; i < 6; i++) {
@@ -40,11 +40,26 @@ export const createUser = async (req, res, next) => {
       address,
       phone,
       role,
-      image
+      image,
+      designation,
+      department,
     } = req.body.personalInfo;
     const { password, email } = req.body;
 
-    if (!firstName || !lastName || !email || !aadhar || !pan || !state || !city || !address || !phone || !role) {
+    if (
+      !firstName ||
+      !lastName ||
+      !email ||
+      !aadhar ||
+      !pan ||
+      !state ||
+      !city ||
+      !address ||
+      !phone ||
+      !role ||
+      !designation ||
+      !department
+    ) {
       return next(new Errorhandler("Empty fileds", 400));
     }
     let user = await User.findOne({ email: email, isDeleted: false });
@@ -57,20 +72,20 @@ export const createUser = async (req, res, next) => {
     let verified = false;
 
     if (role === "HR") {
-      if (!password || !email) return (next(new Errorhandler("enter password", 400)))
+      if (!password || !email)
+        return next(new Errorhandler("enter password", 400));
       hashedpassword = await bcrypt.hash(password, 10);
       verified = true;
     }
     if (role === "EMPLOYEE") {
-
-
       code = generateRandomCode();
 
       codeCreateTime = Date.now();
     }
+
     console.log(code, codeCreateTime, "time");
 
-    console.log(hashedpassword, "haehsh")
+    console.log(hashedpassword, "haehsh");
 
     const result = await User.create({
       personalInfo: {
@@ -84,27 +99,28 @@ export const createUser = async (req, res, next) => {
         state: state,
         city: city,
         address: address,
+        designation: designation,
+        department: department,
       },
       password: hashedpassword,
-      email:  email,
+      email: email,
       code: code,
       codeCreateTime: codeCreateTime,
-      verified: verified
+      verified: verified,
     });
-    console.log(result, "result")
-    if (!result) return next(new Errorhandler("Some error", 400))
+    console.log(result, "result");
+    if (!result) return next(new Errorhandler("Some error", 400));
 
     res.status(200).json({
       success: true,
       message: "User Created Successfully",
       result,
     });
-
   } catch (error) {
-    console.log(error)
+    console.log(error);
     next(error);
   }
-}
+};
 
 export const getAuthToken = async (req, res, next) => {
   const result = await Auth.find();
@@ -113,12 +129,12 @@ export const getAuthToken = async (req, res, next) => {
     message: "All Auth",
     result,
   });
-}
+};
 
 export const regenrateToken = async (req, res, next) => {
   try {
     const userId = req.body.userId;
-    console.log(userId)
+    console.log(userId);
     if (!userId) return next(new Errorhandler("please specify the user", 400));
 
     const code = generateRandomCode();
@@ -127,20 +143,20 @@ export const regenrateToken = async (req, res, next) => {
     const result = await User.findOneAndUpdate(
       {
         _id: userId,
-        isDeleted: false
+        isDeleted: false,
       },
       {
         verified: false,
         codeCreateTime: codeCreateTime,
         code: code,
-        isCodeUsed: false
+        isCodeUsed: false,
       },
       {
-        new: true
+        new: true,
       }
-    )
+    );
     if (!result) next(new Errorhandler("User not found", 400));
-    console.log(result, "res")
+    console.log(result, "res");
 
     res.status(200).json({
       success: true,
@@ -150,19 +166,19 @@ export const regenrateToken = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-
-
-}
+};
 
 export const adminLogin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    console.log(email, password)
+    console.log(email, password);
 
     if (!email || !password) {
       return next(new Errorhandler("Enter both email and pass"), 400);
     }
-    const user = await User.findOne({ email: email, isDeleted: false }).select("+password");
+    const user = await User.findOne({ email: email, isDeleted: false }).select(
+      "+password"
+    );
 
     if (!user) return next(new Errorhandler("User dosent exist", 400));
 
@@ -176,7 +192,7 @@ export const adminLogin = async (req, res, next) => {
       id: user._id,
       name: user.name,
       email: user.email,
-      role: user.role
+      role: user.role,
     };
     const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, {
       expiresIn: process.env.JWT_KEY_EXPIRE,
@@ -189,12 +205,12 @@ export const adminLogin = async (req, res, next) => {
     res.status(200).cookie("token", token, options).json({
       success: true,
       user,
-      token
+      token,
     });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
 
 // export const employeeLogin = async (req, res, next) => {
 //   const { code, loginTime } = req.body;
@@ -204,7 +220,6 @@ export const adminLogin = async (req, res, next) => {
 //   const user = await User.findOne({ code: code, isCodeUsed: false, isDeleted:false });
 
 //   if (!user) return next(new Errorhandler("No employee found here", 400));
-
 
 //   if (Number(loginTime) - Number(user.codeCreateTime) > 60000) return next(new Errorhandler("Cannot login", 400));
 
@@ -227,35 +242,32 @@ export const adminLogin = async (req, res, next) => {
 //     result
 //   })
 
-
 // }
 
 export const deleteUser = async (req, res, next) => {
-
   try {
     const { userId } = req.body;
 
-    if (!userId) return next(new Errorhandler('Send Id please', 400))
+    if (!userId) return next(new Errorhandler("Send Id please", 400));
     const result = await User.findOneAndUpdate(
       {
         userId: userId,
-        isDeleted: false
+        isDeleted: false,
       },
       { isDeleted: true },
       { new: true }
-    )
+    );
 
     if (!result) return next(new Errorhandler("User not found", 400));
 
     res.status(200).json({
       success: true,
-      result
-    })
+      result,
+    });
   } catch (error) {
     next(error);
   }
-
-}
+};
 
 //edit user---
 
@@ -263,50 +275,54 @@ export const editUser = async (req, res, next) => {
   try {
     const { findQuery, updateQuery } = req.body;
 
-    if (!findQuery || !updateQuery) return next(new Errorhandler("fields not specified", 400));
+    if (!findQuery || !updateQuery)
+      return next(new Errorhandler("fields not specified", 400));
 
-    const result = await User.findOneAndUpdate(findQuery, updateQuery, { new: true });
-
-    if (!result) return next(new Errorhandler("Not found", 400))
-
-    res.status(200).json({
-      success: true,
-      result
-    })
-  } catch (error) {
-    next(error)
-  }
-}
-
-export const editAttendence = async (req, res, next) => {
-  try {
-    const { findQuery, updateQuery } = req.body;
-
-    if (!findQuery || !updateQuery) return next(new Errorhandler("send fields", 400));
-
-    const result = await User.findOneAndUpdate(findQuery, updateQuery, { new: true });
+    const result = await User.findOneAndUpdate(findQuery, updateQuery, {
+      new: true,
+    });
 
     if (!result) return next(new Errorhandler("Not found", 400));
 
     res.status(200).json({
       success: true,
-      result
-    })
+      result,
+    });
   } catch (error) {
     next(error);
   }
-}
+};
+
+export const editAttendence = async (req, res, next) => {
+  try {
+    const { findQuery, updateQuery } = req.body;
+
+    if (!findQuery || !updateQuery)
+      return next(new Errorhandler("send fields", 400));
+
+    const result = await User.findOneAndUpdate(findQuery, updateQuery, {
+      new: true,
+    });
+
+    if (!result) return next(new Errorhandler("Not found", 400));
+
+    res.status(200).json({
+      success: true,
+      result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const cloudinaryTesting = async (req, res, next) => {
-
   try {
-
-    const result =await uploadImageFromBase64(req.body.image);
-    console.log(result.url)
+    const result = await uploadImageFromBase64(req.body.image);
+    console.log(result.url);
     res.json({
-      hello: "helllo"
-    })
+      hello: "helllo",
+    });
   } catch (error) {
-    console.log(error, "erorr")
+    console.log(error, "erorr");
   }
-}
+};
